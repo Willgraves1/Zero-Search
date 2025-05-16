@@ -6,10 +6,7 @@ The following versions of this project are currently supported with security upd
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | ✅ Yes              |
-| 5.0.x   | ❌ No               |
-| 4.0.x   | ✅ Yes              |
-| < 4.0   | ❌ No               |
+| 1.0.1   | ✅ Yes             |
 
 ## Reporting a Vulnerability
 
@@ -17,8 +14,7 @@ If you find a security issue or vulnerability in this project, please report it 
 
 ### Contact
 
-Send details to: **security@will.com**  
-(Replace with your actual contact email)
+Send details to: **security@willgraves.co.uk**  
 
 Please include:
 
