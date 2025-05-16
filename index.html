@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zero Search Engine</title>
+  <style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #e0e0e0, #ffffff);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+#home-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+#home-screen h1 {
+  font-size: 56px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30px;
+  background: linear-gradient(to right, #e76c1b, #ff9900);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glassy-box {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 90%;
+  width: 500px;
+}
+
+#home-search {
+  padding: 16px 24px;
+  font-size: 18px;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    0 8px 20px rgba(0, 0, 0, 0.1),
+    0 4px 10px rgba(231, 108, 27, 0.2);
+  color: #333;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+#home-search::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+  font-weight: 300;
+}
+
+#home-search:focus {
+  border: 1px solid rgba(149, 147, 145, 0.6);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    0 0 0 4px rgba(255, 120, 31, 0.1),
+    0 8px 30px rgba(231, 108, 27, 0.15);
+}
+
+    header {
+      background-color: #e76c1b;
+      padding: 20px;
+      color: white;
+      text-align: center;
+    }
+
+    #search-bar {
+      padding: 10px;
+      width: 80%;
+      font-size: 16px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 32px;
+      outline: none;
+    }
+
+    main {
+      display: none;
+    }
+
+    #search-results, #entity-info {
+      margin: 20px;
+    }
+
+    .result-item {
+      background-color: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .result-item h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .result-item p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    #entity-info {
+      padding: 20px;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #entity-info h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    #entity-info p {
+      font-size: 16px;
+      color: #555;
+    }
+
+    #entity-info .schema-info {
+      margin-top: 20px;
+    }
+
+    /* Google-style homepage */
+    #home-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 40px);
+    }
+
+    #home-screen input {
+      margin-top: 20px;
+      width: 60%;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+    <div id="home-screen">
+        <div class="glassy-box">
+          <h1>Zero</h1>
+          <input type="text" id="home-search" placeholder="Search anything..." />
+        </div>
+      </div>      
+
+  <!-- After search -->
+  <header class="hidden" id="top-bar">
+    <input type="text" id="search-bar" placeholder="Search..." />
+  </header>
+
+  <main>
+    <section id="search-results"></section>
+    <section id="entity-info"></section>
+  </main>
+
+  <script>
+    let loadedData = null;
+
+    async function loadData() {
+      try {
+        const indexResponse = await fetch('/web_crawler/output/index.json');
+        const entitiesResponse = await fetch('/web_crawler/output/entities.json');
+
+        if (!indexResponse.ok || !entitiesResponse.ok) throw new Error('Failed to fetch data');
+
+        const indexData = await indexResponse.json();
+        const entitiesData = await entitiesResponse.json();
+
+        return { indexData, entitiesData };
+      } catch (error) {
+        console.error('Error loading data:', error);
+        return { indexData: [], entitiesData: [] };
+      }
+    }
+
+    function displaySearchResults(results) {
+      const resultsContainer = document.getElementById('search-results');
+      resultsContainer.innerHTML = '';
+
+      if (results.length === 0) {
+        resultsContainer.innerHTML = '<p>No results found.</p>';
+        return;
+      }
+
+      results.forEach(result => {
+        const title = result.meta_tags?.['og:title'] || result.meta_tags?.['twitter:title'] || result.url;
+        const description = result.meta_tags?.description || 'No description available.';
+        const resultItem = document.createElement('div');
+        resultItem.className = 'result-item';
+        resultItem.innerHTML = `
+          <h3>${title}</h3>
+          <p>${description}</p>
+          <a href="${result.url}" target="_blank">${result.url}</a>
+        `;
+        resultsContainer.appendChild(resultItem);
+      });
+    }
+
+    function displayEntityInfo(entity) {
+      const entityInfoContainer = document.getElementById('entity-info');
+      entityInfoContainer.innerHTML = '';
+
+      if (!entity) {
+        entityInfoContainer.innerHTML = '<p>No entity information available.</p>';
+        return;
+      }
+
+      entityInfoContainer.innerHTML = `
+        <h2>${entity.name}</h2>
+        <p>${entity.description}</p>
+        <div class="schema-info">
+          <h3>Schema Information</h3>
+          <pre>${JSON.stringify(entity.schema, null, 2)}</pre>
+        </div>
+      `;
+    }
+
+    function search(query, indexData, entitiesData) {
+      const lowerQuery = query.toLowerCase();
+
+      const results = indexData.filter(item => {
+        const title = item.meta_tags?.['og:title'] || item.meta_tags?.['twitter:title'] || '';
+        const description = item.meta_tags?.description || '';
+        const url = item.url || '';
+        return (
+          title.toLowerCase().includes(lowerQuery) ||
+          description.toLowerCase().includes(lowerQuery) ||
+          url.toLowerCase().includes(lowerQuery)
+        );
+      });
+
+      displaySearchResults(results);
+      displayEntityInfo(null); // placeholder
+    }
+
+    function handleSearch(query) {
+      if (!query || !loadedData) return;
+
+      document.getElementById('home-screen').classList.add('hidden');
+      document.getElementById('top-bar').classList.remove('hidden');
+      document.querySelector('main').style.display = 'block';
+      document.getElementById('search-bar').value = query;
+      search(query, loadedData.indexData, loadedData.entitiesData);
+    }
+
+    // Load data on page load
+    (async () => {
+      loadedData = await loadData();
+    })();
+
+    // Home search bar (Enter key triggers search)
+    document.getElementById('home-search').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        handleSearch(e.target.value.trim());
+      }
+    });
+
+    // Top search bar (Enter key triggers search)
+    document.getElementById('search-bar').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        handleSearch(e.target.value.trim());
+      }
+    });
+  </script>
+</body>
+</html>
