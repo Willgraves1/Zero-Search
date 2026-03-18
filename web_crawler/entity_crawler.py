@@ -36,7 +36,7 @@ def extract_json_ld_entities(url):
         print(f"[ERROR] Failed to fetch or parse {url}: {e}")
         return []
 
-def load_index(index_file="output/index.json"):
+def load_index(index_file="index.json"):
     """Load index file containing URLs."""
     try:
         with open(index_file, "r") as f:
@@ -45,7 +45,7 @@ def load_index(index_file="output/index.json"):
         print("[ERROR] index.json not found.")
         return []
 
-def save_entities(entities, output_file="output/entities.json"):
+def save_entities(entities, output_file="entities.json"):
     """Save extracted entities to JSON file."""
     with open(output_file, "w") as f:
         json.dump(entities, f, indent=2)
